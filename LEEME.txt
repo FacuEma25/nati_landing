@@ -1,0 +1,27 @@
+LANDING NATALÍ QUEJELE - MAQUETA FUNCIONAL
+
+Abrí index.html en tu navegador. Para editar cómodamente, abrí esta carpeta en VS Code con Live Server.
+
+Los 4 recursos de la carpeta assets/ son COPIAS EXACTAS de los archivos originales proporcionados:
+- logo-original.png
+- nati-hero-original.png
+- nati-sobre-mi-original.png
+- nati-banner-original.png
+No se retocaron, recrearon ni recomprimieron.
+
+CAMBIOS IMPLEMENTADOS
+1. Logo original negro en encabezado.
+2. Menú: Servicios, Sobre mí, Opiniones, Contactame.
+3. Foto original adjunta para hero.
+4. Foto original adjunta para Sobre mí.
+5. Foto original adjunta para banner final.
+6. Formación académica y especializaciones solicitadas.
+7. Eliminado color verde/turquesa #66ABA4.
+
+PENDIENTES ANTES DE PUBLICAR
+- Enlace oficial de WhatsApp o plataforma de turnos (el botón final muestra un aviso mientras no esté configurado).
+- Testimonios reales con autorización: los textos son marcadores de posición, no reseñas inventadas.
+- Verificar precios y vigencia de promociones antes de publicar.
+- Si querés fotos específicas para las tarjetas de servicios, proporcionar los originales para incorporarlos sin alteración.
+
+Esta versión reconstruye la estética de la maqueta base con código editable; no es una extracción pixel-perfect de la imagen generada.
