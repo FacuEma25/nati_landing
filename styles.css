@@ -220,7 +220,7 @@ img {
 }
 
 .blob-pink {
-  background: var(--pink);
+  background: var(--orange);
   width: 32%;
   height: 24%;
   right: -12%;
@@ -301,11 +301,12 @@ img {
   top: 18%;
   padding: 30px 25px;
   border-radius: 50%;
-  background: var(--pink);
+  background: var(--yellow);
   transform: rotate(-9deg);
   font-style: italic;
   font-weight: 700;
   text-align: center;
+  color: var(--black);
 }
 
 .about-copy {
@@ -511,7 +512,7 @@ img {
   left: 12px;
   padding: 8px 10px;
   border-radius: 18px;
-  background: var(--pink);
+  background: var(--black);
   color: #fff;
   font-size: 10px;
   font-weight: 800;
@@ -1032,7 +1033,7 @@ img {
 
 
 .final-cta {
-  background: var(--pink);
+  background: var(--orange);
   overflow: hidden;
 }
 
