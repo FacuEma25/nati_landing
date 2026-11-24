@@ -21,6 +21,25 @@ contactButton?.addEventListener('click', e => {
 });
 
 
+/* ==========================================
+   ANIMACIONES DE ENTRADA - AOS
+   ========================================== */
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (typeof AOS === "undefined") {
+    console.error("AOS no se cargó correctamente");
+    return;
+  }
+
+  AOS.init({
+    duration: 750,
+    easing: "ease-out-cubic",
+    once: true,
+    offset: 50,
+    delay: 0
+  });
+});
+
 
 
 /* ==========================================
@@ -28,40 +47,54 @@ contactButton?.addEventListener('click', e => {
    ========================================== */
 
 (() => {
-  const carousel = document.querySelector(
-    ".testimonial-carousel"
-  );
+  const carousel = document.querySelector(".testimonial-carousel");
 
   if (!carousel) return;
 
-  const viewport = carousel.querySelector(
-    ".testimonial-viewport"
-  );
-  const track = carousel.querySelector(
-    ".testimonial-track"
-  );
-  const cards = Array.from(
-    track.querySelectorAll(".testimonial-card")
-  );
-
+  const viewport = carousel.querySelector(".testimonial-viewport");
+  const track = carousel.querySelector(".testimonial-track");
   const prev = carousel.querySelector(".testimonial-prev");
   const next = carousel.querySelector(".testimonial-next");
   const dotsContainer = carousel.querySelector(".testimonial-dots");
 
+  if (!viewport || !track || !prev || !next || !dotsContainer) return;
+
+  const cards = Array.from(
+    track.querySelectorAll(".testimonial-card")
+  );
+
   if (!cards.length) return;
 
   let currentIndex = 0;
-  let startX = null;
+  let startX = 0;
+  let startY = 0;
+  let isDragging = false;
+  let pointerId = null;
+
+  /* CANTIDAD DE TARJETAS VISIBLES */
 
   function getVisibleCount() {
-    if (window.innerWidth <= 767) return 1;
-    if (window.innerWidth <= 991) return 2;
-    return 3;
+    const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
+    const cardWidth = cards[0].getBoundingClientRect().width;
+
+    if (!cardWidth) return 1;
+
+    return Math.max(
+      1,
+      Math.min(
+        cards.length,
+        Math.floor(
+          (viewport.clientWidth + gap + 1) / (cardWidth + gap)
+        )
+      )
+    );
   }
 
   function getMaxIndex() {
     return Math.max(0, cards.length - getVisibleCount());
   }
+
+  /* ACTUALIZACIÓN DEL CARRUSEL */
 
   function updateCarousel() {
     const maxIndex = getMaxIndex();
@@ -71,32 +104,28 @@ contactButton?.addEventListener('click', e => {
       maxIndex
     );
 
-    const gap = parseFloat(
-      getComputedStyle(track).gap
-    ) || 0;
-
+    const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
     const cardWidth = cards[0].getBoundingClientRect().width;
 
     track.style.transform =
       `translate3d(-${currentIndex * (cardWidth + gap)}px, 0, 0)`;
 
-    prev.disabled = currentIndex === 0;
-    next.disabled = currentIndex === maxIndex;
+    prev.disabled = maxIndex === 0;
+    next.disabled = maxIndex === 0;
+
+    /* INDICADORES */
 
     dotsContainer.innerHTML = "";
+    dotsContainer.hidden = maxIndex === 0;
 
-    if (maxIndex === 0) {
-      dotsContainer.hidden = true;
-      return;
-    }
-
-    dotsContainer.hidden = false;
+    if (maxIndex === 0) return;
 
     for (let i = 0; i <= maxIndex; i++) {
       const dot = document.createElement("button");
 
       dot.type = "button";
       dot.className = "testimonial-dot";
+
       dot.setAttribute(
         "aria-label",
         `Ir a la posición ${i + 1}`
@@ -116,58 +145,103 @@ contactButton?.addEventListener('click', e => {
     }
   }
 
-  prev.addEventListener("click", () => {
-    currentIndex--;
+  /* NAVEGACIÓN CIRCULAR */
+
+  function goNext() {
+    const maxIndex = getMaxIndex();
+
+    if (maxIndex === 0) return;
+
+    currentIndex =
+      currentIndex >= maxIndex ? 0 : currentIndex + 1;
+
     updateCarousel();
+  }
+
+  function goPrev() {
+    const maxIndex = getMaxIndex();
+
+    if (maxIndex === 0) return;
+
+    currentIndex =
+      currentIndex <= 0 ? maxIndex : currentIndex - 1;
+
+    updateCarousel();
+  }
+
+  prev.addEventListener("click", goPrev);
+  next.addEventListener("click", goNext);
+
+  /* ARRASTRE CON MOUSE Y DEDO */
+
+  viewport.addEventListener("pointerdown", (event) => {
+    if (!event.isPrimary || getMaxIndex() === 0) return;
+
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+
+    if (event.target.closest("a, button")) return;
+
+    startX = event.clientX;
+    startY = event.clientY;
+
+    isDragging = true;
+    pointerId = event.pointerId;
+
+    viewport.setPointerCapture(pointerId);
+    viewport.classList.add("is-dragging");
   });
 
-  next.addEventListener("click", () => {
-    currentIndex++;
-    updateCarousel();
-  });
+  viewport.addEventListener("pointerup", (event) => {
+    if (!isDragging || event.pointerId !== pointerId) return;
 
-  /* DESLIZAMIENTO TÁCTIL */
+    const distanceX = startX - event.clientX;
+    const distanceY = startY - event.clientY;
 
-  viewport.addEventListener("touchstart", (event) => {
-    startX = event.touches[0].clientX;
-  }, { passive: true });
-
-  viewport.addEventListener("touchend", (event) => {
-    if (startX === null) return;
-
-    const endX = event.changedTouches[0].clientX;
-    const distance = startX - endX;
-
-    if (Math.abs(distance) > 45) {
-      currentIndex += distance > 0 ? 1 : -1;
-      updateCarousel();
+    if (
+      Math.abs(distanceX) > 45 &&
+      Math.abs(distanceX) > Math.abs(distanceY)
+    ) {
+      if (distanceX > 0) {
+        goNext();
+      } else {
+        goPrev();
+      }
     }
 
-    startX = null;
-  }, { passive: true });
+    stopDragging();
+  });
+
+  function stopDragging() {
+    isDragging = false;
+
+    if (
+      pointerId !== null &&
+      viewport.hasPointerCapture(pointerId)
+    ) {
+      viewport.releasePointerCapture(pointerId);
+    }
+
+    pointerId = null;
+    viewport.classList.remove("is-dragging");
+  }
+
+  viewport.addEventListener("pointercancel", stopDragging);
+  viewport.addEventListener("lostpointercapture", stopDragging);
+
+  viewport.addEventListener("dragstart", (event) => {
+    event.preventDefault();
+  });
+
+  /* ACTUALIZACIÓN RESPONSIVE */
 
   window.addEventListener("resize", updateCarousel);
+
+  if (typeof ResizeObserver !== "undefined") {
+    const observer = new ResizeObserver(updateCarousel);
+    observer.observe(viewport);
+  }
 
   updateCarousel();
 })();
 
 
-
-/* ==========================================
-   ANIMACIONES DE ENTRADA - AOS
-   ========================================== */
-
-document.addEventListener("DOMContentLoaded", () => {
-  if (typeof AOS === "undefined") {
-    console.error("AOS no se cargó correctamente");
-    return;
-  }
-
-  AOS.init({
-    duration: 750,
-    easing: "ease-out-cubic",
-    once: true,
-    offset: 50,
-    delay: 0
-  });
-});
